@@ -8,7 +8,7 @@ const MainRoute = () => {
       <div className="w-1/5 h-full pl-8 pr-6">
         <Sidebar />
       </div>
-      <div className="w-4/5 flex flex-col gap-2">
+      <div className="w-4/5 flex flex-col gap-6">
         <Navbar />
         <Routes>
           <Route index element={<Home />} />
