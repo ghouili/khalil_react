@@ -16,7 +16,7 @@ const InputField = ({ label, type, id, value, onchange}) => {
         id={id}
         name={id}
         value={value}
-        onChange={(data) => onchange(data.target.value)}
+        onChange={(data) => onchange(data)}
         className="w-full    py-1.5 px-3 text-gray-900 outline-none"
       />
     </div>

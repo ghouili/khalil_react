@@ -1,11 +1,104 @@
 /* eslint-disable react/prop-types */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import InputField from "../inputFields/InputField";
+import axios from "axios";
+import { path } from "../../utls/Variables";
+import Swal from "sweetalert2";
 
-const UseModel = ({ openModel, ToggleModel }) => {
-  const [Fname, setFname] = useState("");
-  const [Lname, setLname] = useState("");
-  const [cin, setCIN] = useState("");
+const UseModel = ({ openModel, ToggleModel, data, GetData }) => {
+  const [userData, setUserData] = useState({
+    name: "",
+    email: "",
+    age: "",
+  });
+
+  useEffect(() => {
+    console.log(data);
+    if (data) {
+      setUserData(data);
+    } else {
+      setUserData({
+        name: "",
+        email: "",
+        age: "",
+      });
+    }
+  }, [data]);
+
+  const onchange = (data) => {
+    setUserData({ ...userData, [data.target.name]: data.target.value });
+  };
+
+  const close = () => {
+    setUserData({
+      name: "",
+      email: "",
+      age: "",
+    });
+    ToggleModel();
+  };
+
+  const submitData = async (e) => {
+    e.preventDefault();
+    // console.log(userData);
+    if (!data) {
+      await axios
+        .post(`${path}user/add`, userData)
+        .then((res) => {
+          if (res.data?.sucess) {
+            Swal.fire({
+              title: "Good job!",
+              text: res.data?.message,
+              icon: "success",
+            });
+            GetData();
+            close();
+          } else {
+            Swal.fire({
+              title: "Good job!",
+              text: "somethins with server",
+              icon: "error",
+            });
+          }
+        })
+        .catch((error) => {
+          Swal.fire({
+            title: "Good job!",
+            text: error.message,
+            icon: "error",
+          });
+          // console.log(error);
+        });
+    } else {
+      await axios
+        .put(`${path}user/${data._id}`, userData)
+        .then((res) => {
+          if (res.data?.sucess) {
+            Swal.fire({
+              title: "Good job!",
+              text: res.data?.message,
+              icon: "success",
+            });
+            GetData();
+            close();
+          } else {
+            Swal.fire({
+              title: "Good job!",
+              text: "somethins with server",
+              icon: "error",
+            });
+          }
+        })
+        .catch((error) => {
+          Swal.fire({
+            title: "Good job!",
+            text: error.message,
+            icon: "error",
+          });
+          // console.log(error);
+        });
+    }
+  };
   return (
     <>
       {openModel && (
@@ -21,7 +114,7 @@ const UseModel = ({ openModel, ToggleModel }) => {
               <div className="flex items-center justify-between pb-4  rounded-t ">
                 <h3 className="text-xl font-bold text-gray-900 "> User</h3>
                 <button
-                  onClick={ToggleModel}
+                  onClick={close}
                   type="button"
                   className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center "
                 >
@@ -47,31 +140,31 @@ const UseModel = ({ openModel, ToggleModel }) => {
               {/* <!-- Modal body --> */}
               <div className="w-full grid grid-cols-3 gap-4 py-4 ">
                 <InputField
-                  label="First Name"
+                  label="Ful Name"
                   type="text"
-                  id="Fname"
-                  value={Fname}
-                  onchange={setFname}
+                  id="name"
+                  value={userData.name}
+                  onchange={onchange}
                 />
                 <InputField
-                  label="Last Name"
-                  type="text"
-                  id="Lname"
-                  value={Lname}
-                  onchange={setLname}
+                  label="Email"
+                  type="email"
+                  id="email"
+                  value={userData.email}
+                  onchange={onchange}
                 />
                 <InputField
-                  label="CIN"
+                  label="Age"
                   type="number"
-                  id="cin"
-                  value={cin}
-                  onchange={setCIN}
+                  id="age"
+                  value={userData.age}
+                  onchange={onchange}
                 />
               </div>
               {/* <!-- Modal footer --> */}
               <div className="flex items-center justify-end gap-4 border-t pt-4 border-gray-200 rounded-b ">
                 <button
-                  onClick={ToggleModel}
+                  onClick={close}
                   data-modal-hide="default-modal"
                   type="button"
                   className="py-1 px-3 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100 "
@@ -79,7 +172,7 @@ const UseModel = ({ openModel, ToggleModel }) => {
                   Cancel
                 </button>
                 <button
-                  onClick={ToggleModel}
+                  onClick={submitData}
                   data-modal-hide="default-modal"
                   type="button"
                   className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-3 py-1 text-center "
