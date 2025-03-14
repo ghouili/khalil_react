@@ -1,23 +1,58 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import InputField from "../inputFields/InputField";
 import axios from "axios";
 import { path } from "../../utls/Variables";
 import Swal from "sweetalert2";
+import { ImagePlus, SquarePen } from "lucide-react";
 
 const UseModel = ({ openModel, ToggleModel, data, GetData }) => {
   const [userData, setUserData] = useState({
+    pic: null,
     name: "",
     email: "",
     age: "",
   });
 
+  // image related ::::
+  const [File, setFile] = useState(null);
+  const [previewurl, setPreviewurl] = useState(null);
+  const [isValid, setIsValid] = useState(false);
+
+  const filepickref = useRef();
+
   useEffect(() => {
-    console.log(data);
+    if (!File) return;
+
+    const filereader = new FileReader();
+    filereader.onload = () => {
+      setPreviewurl(filereader.result);
+      console.log("previewurl", filereader.result);
+    };
+    filereader.readAsDataURL(File);
+  }, [File]);
+
+  // upload image::
+  const pickhandler = (event) => {
+    let pickedFile;
+    if (event.target.files && event.target.files.length === 1) {
+      pickedFile = event.target.files[0];
+      setFile(pickedFile);
+      // setUserData({ ...userData, pic: pickedFile });
+      console.log(pickedFile);
+      setIsValid(true);
+    } else {
+      setIsValid(false);
+    }
+  };
+
+  useEffect(() => {
+    // console.log(data);
     if (data) {
       setUserData(data);
     } else {
       setUserData({
+        pic: null,
         name: "",
         email: "",
         age: "",
@@ -30,7 +65,11 @@ const UseModel = ({ openModel, ToggleModel, data, GetData }) => {
   };
 
   const close = () => {
+    setFile(null);
+    setPreviewurl(null);
+    setIsValid(false);
     setUserData({
+      pic: null,
       name: "",
       email: "",
       age: "",
@@ -41,9 +80,17 @@ const UseModel = ({ openModel, ToggleModel, data, GetData }) => {
   const submitData = async (e) => {
     e.preventDefault();
     // console.log(userData);
+
+    let formdata = new FormData();
+    formdata.append("name", userData.name);
+    formdata.append("email", userData.email);
+    formdata.append("age", userData.age);
+    if (isValid) {
+      formdata.append("pic", File);
+    }
     if (!data) {
       await axios
-        .post(`${path}user/add`, userData)
+        .post(`${path}user/add`, formdata)
         .then((res) => {
           if (res.data?.sucess) {
             Swal.fire({
@@ -71,7 +118,7 @@ const UseModel = ({ openModel, ToggleModel, data, GetData }) => {
         });
     } else {
       await axios
-        .put(`${path}user/${data._id}`, userData)
+        .put(`${path}user/${data._id}`, formdata)
         .then((res) => {
           if (res.data?.sucess) {
             Swal.fire({
@@ -139,6 +186,72 @@ const UseModel = ({ openModel, ToggleModel, data, GetData }) => {
               <div className=" w-full border-b border-gray-300 py-0 " />
               {/* <!-- Modal body --> */}
               <div className="w-full grid grid-cols-3 gap-4 py-4 ">
+                <div className="col-span-3 col-start-1 flex justify-center">
+                  {previewurl ? (
+                    <div className="relative">
+                      <img
+                        src={previewurl}
+                        className="rounded-md shadow h-[20vh] w-auto"
+                        alt=""
+                      />
+                      <label
+                        htmlFor="pic"
+                        className=" rounded-full p-1.5 shadow bg-white absolute -right-4 bottom-2 border border-gray-400 cursor-pointer"
+                      >
+                        <SquarePen strokeWidth={1.2} size={20} />
+                        <input
+                          ref={filepickref}
+                          className="hidden"
+                          onChange={pickhandler}
+                          type="file"
+                          name="pic"
+                          id="pic"
+                        />
+                      </label>
+                    </div>
+                  ) : userData.pic ? (
+                    <div className="relative">
+                      <img
+                        src={`${path}uploads/images/${userData.pic}`}
+                        className="rounded-md shadow h-[20vh] w-auto"
+                        alt=""
+                      />
+                      <label
+                        htmlFor="pic"
+                        className=" rounded-full p-1.5 shadow bg-white absolute -right-4 bottom-2 border border-gray-400 cursor-pointer"
+                      >
+                        <SquarePen strokeWidth={1.2} size={20} />
+                        <input
+                          ref={filepickref}
+                          className="hidden"
+                          onChange={pickhandler}
+                          type="file"
+                          name="pic"
+                          id="pic"
+                        />
+                      </label>
+                    </div>
+                  ) : (
+                    <label
+                      htmlFor="pic"
+                      className="p-8 border-2 rounded-md border-gray-800 flex flex-col items-center justify-center text-gray-600"
+                    >
+                      <ImagePlus strokeWidth={1} size={40} />
+                      <span className="text-center">
+                        Please chouse a picture <br />
+                        bla bla bla{" "}
+                      </span>
+                      <input
+                        ref={filepickref}
+                        className="hidden"
+                        onChange={pickhandler}
+                        type="file"
+                        name="pic"
+                        id="pic"
+                      />
+                    </label>
+                  )}
+                </div>
                 <InputField
                   label="Ful Name"
                   type="text"
